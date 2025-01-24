@@ -90,7 +90,7 @@ Welcome to the Dashboard
    python3 main.py
    ```
 
-## Future Improvements
+## Future Improvements (I am Working on) 
 - Implement database integration for scalable data management.
 - Add email verification during registration.
 - Enhance task filtering options by priority or deadlines.
