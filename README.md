@@ -82,12 +82,12 @@ Welcome to the Dashboard
 
 2. Navigate to the project directory:
    ```bash
-   cd python-task-manager
+   cd User-Authentication-and-Task-Management
    ```
 
 3. Run the program:
    ```bash
-   python main.py
+   python3 main.py
    ```
 
 ## Future Improvements
