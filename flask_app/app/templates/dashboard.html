@@ -2,9 +2,16 @@
 {% block content %}
 <h1>Welcome, {{ current_user.username }}!</h1>
 <h2>Your Tasks</h2>
+<a href="{{ url_for('task_routes.create_task') }}">Create New Task</a>
 <ul>
     {% for task in tasks %}
-    <li>{{ task.title }} - {{ task.description }}</li>
+    <li>
+        <strong>{{ task.title }}</strong> - {{ task.description }}
+        <a href="{{ url_for('task_routes.edit_task', task_id=task.id) }}">Edit</a>
+        <form method="POST" action="{{ url_for('task_routes.delete_task', task_id=task.id) }}" style="display:inline;">
+            <button type="submit">Delete</button>
+        </form>
+    </li>
     {% endfor %}
 </ul>
 {% endblock %}
