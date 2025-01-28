@@ -1,45 +1,48 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, Task
+from flask_login import login_required, current_user
+from app.models import Task
 from app import db
 
-auth_routes = Blueprint('auth_routes', __name__)
 task_routes = Blueprint('task_routes', __name__)
 
-@auth_routes.route('/register', methods=['GET', 'POST'])
-def register():
+@task_routes.route('/create_task', methods=['GET', 'POST'])
+@login_required
+def create_task():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
+        title = request.form['title']
+        description = request.form['description']
+        task = Task(title=title, description=description, user_id=current_user.id)
+        db.session.add(task)
         db.session.commit()
-        flash('Registration successful! Please log in.')
-        return redirect(url_for('auth_routes.login'))
-    return render_template('register.html')
+        flash('Task created successfully!')
+        return redirect(url_for('task_routes.dashboard'))
+    return render_template('create_task.html')
 
-@auth_routes.route('/login', methods=['GET', 'POST'])
-def login():
+@task_routes.route('/edit_task/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        flash('You do not have permission to edit this task.')
+        return redirect(url_for('task_routes.dashboard'))
+
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for('task_routes.dashboard'))
-        flash('Invalid email or password.')
-    return render_template('login.html')
+        task.title = request.form['title']
+        task.description = request.form['description']
+        db.session.commit()
+        flash('Task updated successfully!')
+        return redirect(url_for('task_routes.dashboard'))
+    return render_template('edit_task.html', task=task)
 
-@auth_routes.route('/logout')
+@task_routes.route('/delete_task/<int:task_id>', methods=['POST'])
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('auth_routes.login'))
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if task.user_id != current_user.id:
+        flash('You do not have permission to delete this task.')
+        return redirect(url_for('task_routes.dashboard'))
 
-@task_routes.route('/dashboard')
-@login_required
-def dashboard():
-    tasks = Task.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', tasks=tasks)
+    db.session.delete(task)
+    db.session.commit()
+    flash('Task deleted successfully!')
+    return redirect(url_for('task_routes.dashboard'))
